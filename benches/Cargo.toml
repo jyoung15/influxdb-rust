@@ -7,10 +7,10 @@ publish = false
 edition = "2018"
 
 [dev-dependencies]
-chrono = { version = "0.4.11", features = ["serde"] }
+chrono = { version = "0.4.23", features = ["clock", "serde"], default-features = false }
 futures = "0.3.4"
 influxdb = { path = "../influxdb", features = ["derive"] }
-tokio = { version =  "0.2.22", features = ["macros", "rt-threaded", "sync"] }
+tokio = { version =  "1.23.0", features = ["macros", "rt-multi-thread", "sync"] }
 
 [[bench]]
 name = "client"
