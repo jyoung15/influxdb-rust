@@ -11,7 +11,7 @@ struct WriteableField {
 }
 
 impl From<Field> for WriteableField {
-    fn from(field: Field) -> WriteableField {
+    fn from(field: Field) -> Self {
         let ident = field.ident.expect("fields without ident are not supported");
 
         let check_influx_aware = |attr: &syn::Attribute| -> bool {
@@ -64,7 +64,7 @@ impl From<Field> for WriteableField {
                 .unwrap()
         });
 
-        WriteableField {
+        Self {
             ident,
             is_tag,
             is_ignore,

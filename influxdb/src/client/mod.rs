@@ -1,8 +1,8 @@
-//! Client which can read and write data from InfluxDB.
+//! Client which can read and write data from `InfluxDB`.
 //!
 //! # Arguments
 //!
-//!  * `url`: The URL where InfluxDB is running (ex. `http://localhost:8086`).
+//!  * `url`: The URL where `InfluxDB` is running (ex. `http://localhost:8086`).
 //!  * `database`: The Database against which queries and writes will be run.
 //!
 //! # Examples
@@ -49,7 +49,7 @@ impl<'a> Debug for RedactPassword<'a> {
                 _ => (*k, v.as_str()),
             })
             .collect::<BTreeMap<&'static str, &str>>();
-        f.debug_map().entries(entries.into_iter()).finish()
+        f.debug_map().entries(entries).finish()
     }
 }
 
@@ -67,7 +67,7 @@ impl Client {
     ///
     /// # Arguments
     ///
-    ///  * `url`: The URL where InfluxDB is running (ex. `http://localhost:8086`).
+    ///  * `url`: The URL where `InfluxDB` is running (ex. `http://localhost:8086`).
     ///  * `database`: The Database against which queries and writes will be run.
     ///
     /// # Examples
@@ -85,7 +85,7 @@ impl Client {
     {
         let mut parameters = HashMap::<&str, String>::new();
         parameters.insert("db", database.into());
-        Client {
+        Self {
             url: Arc::new(url.into()),
             parameters: Arc::new(parameters),
             client: HttpClient::new(),
@@ -96,7 +96,7 @@ impl Client {
     ///
     /// # Arguments
     ///
-    /// * username: The Username for InfluxDB.
+    /// * username: The Username for `InfluxDB`.
     /// * password: The Password for the user.
     ///
     /// # Examples
@@ -127,20 +127,25 @@ impl Client {
     }
 
     /// Returns the name of the database the client is using
+    #[must_use]
     pub fn database_name(&self) -> &str {
         // safe to unwrap: we always set the database name in `Self::new`
         self.parameters.get("db").unwrap()
     }
 
-    /// Returns the URL of the InfluxDB installation the client is using
+    /// Returns the URL of the `InfluxDB` installation the client is using
+    #[must_use]
     pub fn database_url(&self) -> &str {
         &self.url
     }
 
-    /// Pings the InfluxDB Server
+    /// Pings the `InfluxDB` Server
     ///
     /// Returns a tuple of build type and version number
     pub async fn ping(&self) -> Result<(String, String), Error> {
+        const BUILD_HEADER: &str = "X-Influxdb-Build";
+        const VERSION_HEADER: &str = "X-Influxdb-Version";
+
         let url = &format!("{}/ping", self.url);
         let res = self
             .client
@@ -148,11 +153,8 @@ impl Client {
             .send()
             .await
             .map_err(|err| Error::ProtocolError {
-                error: format!("{}", err),
+                error: format!("{err}"),
             })?;
-
-        const BUILD_HEADER: &str = "X-Influxdb-Build";
-        const VERSION_HEADER: &str = "X-Influxdb-Version";
 
         #[cfg(feature = "reqwest")]
         let (build, version) = {
@@ -172,9 +174,9 @@ impl Client {
         Ok((build.unwrap().to_owned(), version.unwrap().to_owned()))
     }
 
-    /// Sends a [`ReadQuery`](crate::ReadQuery) or [`WriteQuery`](crate::WriteQuery) to the InfluxDB Server.
+    /// Sends a [`ReadQuery`](crate::ReadQuery) or [`WriteQuery`](crate::WriteQuery) to the `InfluxDB` Server.
     ///
-    /// A version capable of parsing the returned string is available under the [serde_integration](crate::integrations::serde_integration)
+    /// A version capable of parsing the returned string is available under the [`serde_integration`](crate::integrations::serde_integration)
     ///
     /// # Arguments
     ///
@@ -267,7 +269,7 @@ impl Client {
         // todo: improve error parsing without serde
         if s.contains("\"error\"") {
             return Err(Error::DatabaseError {
-                error: format!("influxdb error: \"{}\"", s),
+                error: format!("influxdb error: \"{s}\""),
             });
         }
 
@@ -275,7 +277,7 @@ impl Client {
     }
 }
 
-pub(crate) fn check_status(res: &HttpResponse) -> Result<(), Error> {
+pub fn check_status(res: &HttpResponse) -> Result<(), Error> {
     let status = res.status();
     if status == StatusCode::UNAUTHORIZED.as_u16() {
         Err(Error::AuthorizationError)
@@ -294,7 +296,7 @@ mod tests {
     #[test]
     fn test_client_debug_redacted_password() {
         let client = Client::new("https://localhost:8086", "db").with_auth("user", "pass");
-        let actual = format!("{:#?}", client);
+        let actual = format!("{client:#?}");
         let expected = indoc! { r#"
             Client {
                 url: "https://localhost:8086",

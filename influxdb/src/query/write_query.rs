@@ -1,6 +1,6 @@
-//! Write Query Builder returned by Query::write_query
+//! Write Query Builder returned by `Query::write_query`
 //!
-//! Can only be instantiated by using Query::write_query
+//! Can only be instantiated by using `Query::write_query`
 
 use crate::query::line_proto_term::LineProtoTerm;
 use crate::query::{QueryType, ValidQuery};
@@ -42,7 +42,7 @@ impl WriteQuery {
     where
         S: Into<String>,
     {
-        WriteQuery {
+        Self {
             fields: vec![],
             tags: vec![],
             measurement: measurement.into(),
@@ -95,7 +95,7 @@ impl WriteQuery {
         self
     }
 
-    pub fn get_precision(&self) -> String {
+    #[must_use] pub fn get_precision(&self) -> String {
         let modifier = match self.timestamp {
             Timestamp::Nanoseconds(_) => "ns",
             Timestamp::Microseconds(_) => "u",
@@ -119,14 +119,14 @@ pub enum Type {
 
 impl Display for Type {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        use Type::*;
+        use Type::{Boolean, Float, SignedInteger, Text, UnsignedInteger};
 
         match self {
-            Boolean(x) => write!(f, "{}", x),
-            Float(x) => write!(f, "{}", x),
-            SignedInteger(x) => write!(f, "{}", x),
-            UnsignedInteger(x) => write!(f, "{}", x),
-            Text(text) => write!(f, "{text}", text = text),
+            Boolean(x) => write!(f, "{x}"),
+            Float(x) => write!(f, "{x}"),
+            SignedInteger(x) => write!(f, "{x}"),
+            UnsignedInteger(x) => write!(f, "{x}"),
+            Text(text) => write!(f, "{text}"),
         }
     }
 }
@@ -149,12 +149,12 @@ from_impl! {UnsignedInteger => u8, u16, u32, u64}
 from_impl! {Text => String}
 impl From<&str> for Type {
     fn from(b: &str) -> Self {
-        Type::Text(b.into())
+        Self::Text(b.into())
     }
 }
 impl<T> From<&T> for Type
 where
-    T: Copy + Into<Type>,
+    T: Copy + Into<Self>,
 {
     fn from(t: &T) -> Self {
         (*t).into()
@@ -226,10 +226,7 @@ impl Query for Vec<WriteQuery> {
 
     fn get_type(&self) -> QueryType {
         QueryType::WriteQuery(
-            self.get(0)
-                .map(|q| q.get_precision())
-                // use "ms" as placeholder if query is empty
-                .unwrap_or_else(|| "ms".to_owned()),
+            self.first().map_or_else(|| "ms".to_owned(), WriteQuery::get_precision),
         )
     }
 }
@@ -308,7 +305,7 @@ mod tests {
         assert!(query.is_ok(), "Query was empty");
         assert_eq!(
             query.unwrap(),
-            r#"weather,location=us-midwest,season=summer temperature=82i 11"#
+            r"weather,location=us-midwest,season=summer temperature=82i 11"
         );
     }
 
@@ -360,8 +357,8 @@ mod tests {
 
         assert_eq!(
             query.unwrap().get(),
-            r#"weather,location=us-midwest temperature=82i 11
-weather,location=us-midwest temperature=65i 12"#
+            r"weather,location=us-midwest temperature=82i 11
+weather,location=us-midwest temperature=65i 12"
         );
     }
 }

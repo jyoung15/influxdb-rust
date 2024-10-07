@@ -59,13 +59,12 @@ async fn main() {
         1000000.0 * successful_count as f64 / (end - start).as_micros() as f64
     );
     println!(
-        "{} successful requests, {} errors",
-        successful_count, error_count
+        "{successful_count} successful requests, {error_count} errors"
     );
 }
 
 async fn prepare_influxdb(client: &Client, db_name: &str) {
-    let create_db_stmt = format!("CREATE DATABASE {}", db_name);
+    let create_db_stmt = format!("CREATE DATABASE {db_name}");
     client
         .query(&ReadQuery::new(create_db_stmt))
         .await

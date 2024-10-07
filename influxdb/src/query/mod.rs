@@ -1,5 +1,5 @@
 //! Used to create queries of type [`ReadQuery`](crate::query::read_query::ReadQuery) or
-//! [`WriteQuery`](crate::query::write_query::WriteQuery) which can be executed in InfluxDB
+//! [`WriteQuery`](crate::query::write_query::WriteQuery) which can be executed in `InfluxDB`
 //!
 //! # Examples
 //!
@@ -47,16 +47,16 @@ pub enum Timestamp {
 
 impl fmt::Display for Timestamp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use Timestamp::*;
+        use Timestamp::{Hours, Microseconds, Milliseconds, Minutes, Nanoseconds, Seconds};
         match self {
             Nanoseconds(ts) | Microseconds(ts) | Milliseconds(ts) | Seconds(ts) | Minutes(ts)
-            | Hours(ts) => write!(f, "{}", ts),
+            | Hours(ts) => write!(f, "{ts}"),
         }
     }
 }
 
 impl From<Timestamp> for DateTime<Utc> {
-    fn from(ts: Timestamp) -> DateTime<Utc> {
+    fn from(ts: Timestamp) -> Self {
         match ts {
             Timestamp::Hours(h) => {
                 let nanos =
@@ -89,14 +89,19 @@ where
     T: TimeZone,
 {
     fn from(date_time: DateTime<T>) -> Self {
-        Timestamp::Nanoseconds(date_time.timestamp_nanos() as u128)
+        #[allow(clippy::cast_sign_loss)]
+        Self::Nanoseconds(
+            date_time
+                .timestamp_nanos_opt()
+                .expect("failed to convert DateTime to nanos!") as u128,
+        )
     }
 }
 
 pub trait Query {
-    /// Builds valid InfluxSQL which can be run against the Database.
+    /// Builds valid `InfluxSQL` which can be run against the Database.
     /// In case no fields have been specified, it will return an error,
-    /// as that is invalid InfluxSQL syntax.
+    /// as that is invalid `InfluxSQL` syntax.
     ///
     /// # Examples
     ///
@@ -168,6 +173,7 @@ impl dyn Query {
 #[doc(hidden)]
 pub struct ValidQuery(String);
 impl ValidQuery {
+    #[must_use]
     pub fn get(self) -> String {
         self.0
     }
@@ -191,7 +197,7 @@ impl PartialEq<&str> for ValidQuery {
     }
 }
 
-/// Internal Enum used to decide if a `POST` or `GET` request should be sent to InfluxDB. See [InfluxDB Docs](https://docs.influxdata.com/influxdb/v1.7/tools/api/#query-http-endpoint).
+/// Internal Enum used to decide if a `POST` or `GET` request should be sent to `InfluxDB`. See [InfluxDB Docs](https://docs.influxdata.com/influxdb/v1.7/tools/api/#query-http-endpoint).
 #[derive(PartialEq, Eq, Debug)]
 pub enum QueryType {
     ReadQuery,
@@ -232,7 +238,7 @@ mod tests {
                     .unwrap()
             ),
             datetime_from_timestamp
-        )
+        );
     }
     #[test]
     fn test_chrono_datetime_from_timestamp_minutes() {
@@ -244,7 +250,7 @@ mod tests {
                     .unwrap()
             ),
             datetime_from_timestamp
-        )
+        );
     }
     #[test]
     fn test_chrono_datetime_from_timestamp_seconds() {
@@ -256,7 +262,7 @@ mod tests {
                     .unwrap()
             ),
             datetime_from_timestamp
-        )
+        );
     }
     #[test]
     fn test_chrono_datetime_from_timestamp_millis() {
@@ -264,12 +270,12 @@ mod tests {
         assert_eq!(
             Utc.timestamp_nanos((2 * NANOS_PER_MILLI).try_into().unwrap()),
             datetime_from_timestamp
-        )
+        );
     }
     #[test]
     fn test_chrono_datetime_from_timestamp_nanos() {
         let datetime_from_timestamp: DateTime<Utc> = Timestamp::Nanoseconds(1).into();
-        assert_eq!(Utc.timestamp_nanos(1), datetime_from_timestamp)
+        assert_eq!(Utc.timestamp_nanos(1), datetime_from_timestamp);
     }
     #[test]
     fn test_chrono_datetime_from_timestamp_micros() {
@@ -277,7 +283,7 @@ mod tests {
         assert_eq!(
             Utc.timestamp_nanos((1 / MICROS_PER_NANO).try_into().unwrap()),
             datetime_from_timestamp
-        )
+        );
     }
     #[test]
     fn test_timestamp_from_chrono_date() {
@@ -286,6 +292,6 @@ mod tests {
         assert_eq!(
             Timestamp::Nanoseconds(MILLIS_PER_SECOND * NANOS_PER_MILLI),
             timestamp_from_datetime
-        )
+        );
     }
 }

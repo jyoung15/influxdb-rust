@@ -349,10 +349,10 @@ where
         &mut self,
         seed: K,
     ) -> Result<K::Value, Self::Error> {
-        match self.data.next_element_seed(seed)? {
-            Some(value) => Ok(value),
-            None => Err(Error::custom("next_value_seed called but no value")),
-        }
+        (self.data.next_element_seed(seed)?).map_or_else(
+            || Err(Error::custom("next_value_seed called but no value")),
+            Ok,
+        )
     }
 }
 
@@ -382,7 +382,7 @@ mod tests {
 
     impl<T> From<Series<T>> for EqSeries<T> {
         fn from(Series { name, values }: Series<T>) -> Self {
-            EqSeries { name, values }
+            Self { name, values }
         }
     }
 

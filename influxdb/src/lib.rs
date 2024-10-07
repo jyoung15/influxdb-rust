@@ -5,7 +5,7 @@
 //!
 //! ## Currently Supported Features
 //!
-//! -   Reading and Writing to InfluxDB
+//! -   Reading and Writing to `InfluxDB`
 //! -   Optional Serde Support for Deserialization
 //! -   Running multiple queries in one request (e.g. `SELECT * FROM weather_berlin; SELECT * FROM weather_london`)
 //! -   Writing single or multiple measurements in one request (e.g. `WriteQuery` or `Vec<WriteQuery>` argument)
@@ -24,7 +24,7 @@
 //! influxdb = { version = "0.5.2", features = ["derive"] }
 //! ```
 //!
-//! For an example with using Serde deserialization, please refer to [serde_integration](crate::integrations::serde_integration)
+//! For an example with using Serde deserialization, please refer to [`serde_integration`](crate::integrations::serde_integration)
 //!
 //! ```rust,no_run
 //! use influxdb::{Client, Query, Timestamp, ReadQuery};
@@ -77,7 +77,7 @@
 //!
 //! # Choice of HTTP backend
 //!
-//! To communicate with InfluxDB, you can choose the HTTP backend to be used configuring the appropriate feature. We recommend sticking with the default reqwest-based client, unless you really need async-std compatibility.
+//! To communicate with `InfluxDB`, you can choose the HTTP backend to be used configuring the appropriate feature. We recommend sticking with the default reqwest-based client, unless you really need async-std compatibility.
 //!
 //! - **[hyper](https://github.com/hyperium/hyper)** (through reqwest, used by default), with [rustls](https://github.com/ctz/rustls)
 //!   ```toml

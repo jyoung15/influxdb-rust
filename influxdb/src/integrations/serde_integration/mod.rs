@@ -1,10 +1,10 @@
-//! Serde Integration for InfluxDB. Provides deserialization of query returns.
+//! Serde Integration for `InfluxDB`. Provides deserialization of query returns.
 //!
 //! When querying multiple series in the same query (e.g. with a regex query), it might be desirable to flat map
 //! the resulting series into a single `Vec` like so. The example assumes, that there are weather readings in multiple
 //! series named `weather_<city_name>` (e.g. `weather_berlin`, or `weather_london`). Since we're using a Regex query,
 //! we don't actually know which series will be returned. To assign the city name to the series, we can use the series
-//! `name`, InfluxDB provides alongside query results.
+//! `name`, `InfluxDB` provides alongside query results.
 //!
 //! ```rust,no_run
 //! use influxdb::{Client, Query};
@@ -64,27 +64,25 @@ pub struct DatabaseQueryResult {
 }
 
 impl DatabaseQueryResult {
-    pub fn deserialize_next<T: 'static>(&mut self) -> Result<Return<T>, Error>
+    pub fn deserialize_next<T>(&mut self) -> Result<Return<T>, Error>
     where
-        T: DeserializeOwned + Send,
+        T: 'static + DeserializeOwned + Send,
     {
         serde_json::from_value::<Return<T>>(self.results.remove(0)).map_err(|err| {
             Error::DeserializationError {
-                error: format!("could not deserialize: {}", err),
+                error: format!("could not deserialize: {err}"),
             }
         })
     }
 
-    pub fn deserialize_next_tagged<TAG, T: 'static>(
-        &mut self,
-    ) -> Result<TaggedReturn<TAG, T>, Error>
+    pub fn deserialize_next_tagged<TAG, T>(&mut self) -> Result<TaggedReturn<TAG, T>, Error>
     where
         TAG: DeserializeOwned + Send,
-        T: DeserializeOwned + Send,
+        T: 'static + DeserializeOwned + Send,
     {
         serde_json::from_value::<TaggedReturn<TAG, T>>(self.results.remove(0)).map_err(|err| {
             Error::DeserializationError {
-                error: format!("could not deserialize: {}", err),
+                error: format!("could not deserialize: {err}"),
             }
         })
     }
@@ -98,7 +96,7 @@ pub struct Return<T> {
 }
 
 #[derive(Debug)]
-/// Represents a returned series from InfluxDB
+/// Represents a returned series from `InfluxDB`
 pub struct Series<T> {
     pub name: String,
     pub values: Vec<T>,
@@ -112,7 +110,7 @@ pub struct TaggedReturn<TAG, T> {
 }
 
 #[derive(Debug)]
-/// Represents a returned series from InfluxDB
+/// Represents a returned series from `InfluxDB`
 pub struct TaggedSeries<TAG, T> {
     pub name: String,
     pub tags: TAG,
@@ -122,7 +120,7 @@ pub struct TaggedSeries<TAG, T> {
 impl Client {
     pub async fn json_query(&self, q: ReadQuery) -> Result<DatabaseQueryResult, Error> {
         let query = q.build().map_err(|err| Error::InvalidQueryError {
-            error: format!("{}", err),
+            error: format!("{err}"),
         })?;
 
         let read_query = query.get();
@@ -174,7 +172,7 @@ impl Client {
         // Json has another structure, let's try actually parsing it to the type we're deserializing
         serde_json::from_slice::<DatabaseQueryResult>(&body).map_err(|err| {
             Error::DeserializationError {
-                error: format!("serde error: {}", err),
+                error: format!("serde error: {err}"),
             }
         })
     }

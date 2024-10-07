@@ -1,6 +1,6 @@
-//! Read Query Builder returned by Query::raw_read_query
+//! Read Query Builder returned by `Query::raw_read_query`
 //!
-//! Can only be instantiated by using Query::raw_read_query
+//! Can only be instantiated by using `Query::raw_read_query`
 
 use crate::query::{QueryType, ValidQuery};
 use crate::{Error, Query};
@@ -17,7 +17,7 @@ impl ReadQuery {
     where
         S: Into<String>,
     {
-        ReadQuery {
+        Self {
             queries: vec![query.into()],
         }
     }

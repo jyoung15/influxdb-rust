@@ -21,7 +21,7 @@ pub enum Error {
     DeserializationError { error: String },
 
     #[error("InfluxDB encountered the following error: {error}")]
-    /// Error which has happened inside InfluxDB
+    /// Error which has happened inside `InfluxDB`
     DatabaseError { error: String },
 
     #[error("authentication error. No or incorrect credentials")]
